@@ -1,0 +1,378 @@
+/* WooCommerce Quantity Control - Admin Styles */
+
+.wc-qc-admin-wrapper {
+    max-width: 1200px;
+    margin: 20px 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+}
+
+.wc-qc-header {
+    margin-bottom: 30px;
+}
+
+.wc-qc-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1e1e1e;
+    margin: 0 0 8px 0;
+}
+
+.wc-qc-header .description {
+    font-size: 16px;
+    color: #646970;
+    margin: 0;
+}
+
+.wc-qc-content {
+    display: grid;
+    gap: 24px;
+}
+
+.wc-qc-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.wc-qc-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.wc-qc-card-header {
+    padding: 24px 24px 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.wc-qc-card-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e1e1e;
+    margin: 0 0 8px 0;
+}
+
+.wc-qc-card-header p {
+    font-size: 14px;
+    color: #646970;
+    margin: 0;
+}
+
+.wc-qc-form {
+    padding: 24px;
+}
+
+.wc-qc-form-group {
+    margin-bottom: 24px;
+}
+
+.wc-qc-form-group:last-child {
+    margin-bottom: 0;
+}
+
+.wc-qc-form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e1e1e;
+    margin-bottom: 8px;
+}
+
+.wc-qc-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
+}
+
+.wc-qc-input:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+}
+
+.wc-qc-help-text {
+    display: block;
+    font-size: 12px;
+    color: #646970;
+    margin-top: 6px;
+}
+
+.wc-qc-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .wc-qc-form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Toggle Switch */
+.wc-qc-form-group label.wc-qc-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.wc-qc-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.wc-qc-toggle-slider {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    background: #e0e0e0;
+    border-radius: 24px;
+    transition: background 0.2s ease;
+    margin-right: 12px;
+}
+
+.wc-qc-toggle-slider::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.wc-qc-toggle input[type="checkbox"]:checked + .wc-qc-toggle-slider {
+    background: #0073aa;
+}
+
+.wc-qc-toggle input[type="checkbox"]:checked + .wc-qc-toggle-slider::before {
+    transform: translateX(24px);
+}
+
+.wc-qc-toggle-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e1e1e;
+}
+
+/* Buttons */
+.wc-qc-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.wc-qc-btn-primary {
+    background: #0073aa;
+    color: #ffffff;
+}
+
+.wc-qc-btn-primary:hover {
+    background: #005a87;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 115, 170, 0.3);
+}
+
+.wc-qc-btn-primary:active {
+    transform: translateY(0);
+}
+
+.wc-qc-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.wc-qc-form-actions {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Info Box */
+.wc-qc-info-box {
+    display: flex;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 24px;
+}
+
+.wc-qc-info-icon {
+    font-size: 24px;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.wc-qc-info-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e1e1e;
+    margin: 0 0 12px 0;
+}
+
+.wc-qc-info-content ol {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.wc-qc-info-content li {
+    font-size: 14px;
+    color: #646970;
+    margin-bottom: 4px;
+}
+
+/* Status Grid */
+.wc-qc-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 24px;
+}
+
+.wc-qc-status-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.wc-qc-status-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.wc-qc-status-active {
+    background: #10b981;
+    color: #ffffff;
+}
+
+.wc-qc-status-content h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e1e1e;
+    margin: 0 0 4px 0;
+}
+
+.wc-qc-status-content p {
+    font-size: 12px;
+    color: #646970;
+    margin: 0;
+}
+
+/* Success/Error Messages */
+.wc-qc-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.wc-qc-message-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.wc-qc-message-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+/* Loading States */
+.wc-qc-btn-loading {
+    display: none;
+}
+
+.wc-qc-btn.loading .wc-qc-btn-text {
+    display: none;
+}
+
+.wc-qc-btn.loading .wc-qc-btn-loading {
+    display: inline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .wc-qc-admin-wrapper {
+        margin: 10px;
+    }
+    
+    .wc-qc-card {
+        border-radius: 8px;
+    }
+    
+    .wc-qc-form {
+        padding: 16px;
+    }
+    
+    .wc-qc-card-header {
+        padding: 16px 16px 12px 16px;
+    }
+    
+    .wc-qc-status-grid {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+    
+    .wc-qc-info-box {
+        margin: 16px;
+        padding: 16px;
+    }
+}
+
+/* Animation for smooth transitions */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wc-qc-card {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Focus styles for accessibility */
+.wc-qc-toggle:focus-within .wc-qc-toggle-slider {
+    box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+}
+
+.wc-qc-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+}
