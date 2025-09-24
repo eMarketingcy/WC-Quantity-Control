@@ -1,123 +1,187 @@
 <?php
-/**
- * Admin page template
- */
+if (!defined('ABSPATH')) exit;
+/** @var array $settings */
+$nonce = wp_create_nonce('wc_qc_admin_save');
 
-if (!defined('ABSPATH')) {
-    exit;
-}
+$min  = max(1, (int)($settings['min'] ?? 1));
+$max  = max(1, (int)($settings['max'] ?? 999));
+$noMax= !empty($settings['no_max']);
+$en   = !empty($settings['enable_global']);
+$show = !empty($settings['show_message']);
+$msg  = (string)($settings['message'] ?? 'Quantity must be between {min} and {max}.');
 
-// Get current settings
-$global_min = get_option('wc_qc_global_min_quantity', 1);
-$global_max = get_option('wc_qc_global_max_quantity', 999);
-$enable_global = get_option('wc_qc_enable_global_limits', 'yes');
-$show_message = get_option('wc_qc_show_quantity_message', 'yes');
-$quantity_message = get_option('wc_qc_quantity_message', 'Quantity must be between {min} and {max}');
+$enStep  = !empty($settings['enable_step']);
+$step    = max(1, (int)($settings['step'] ?? 1));
+$enOrder = !empty($settings['enable_order_step']);
+$orderSt = max(1, (int)($settings['order_step'] ?? 0));
+$enPack  = !empty($settings['enable_packages']);
+$packs   = (string)($settings['packages'] ?? '');
 ?>
+<div class="wrap wc-qc-admin-wrapper">
 
-<div class="wc-qc-admin-wrapper">
-    <div class="wc-qc-header">
-        <h1><?php _e('Quantity Control Settings', 'wc-quantity-control'); ?></h1>
-        <p class="description"><?php _e('Configure minimum and maximum order quantities for your WooCommerce store.', 'wc-quantity-control'); ?></p>
+  <div class="wc-qc-header">
+    <h1>Quantity Control</h1>
+    <p class="description">Set global limits, steps, packages and messaging. Product-level overrides still win.</p>
+  </div>
+
+  <div class="wc-qc-status-grid">
+    <div class="wc-qc-status-item">
+      <div class="wc-qc-status-icon">✓</div>
+      <div class="wc-qc-status-content">
+        <h3>WooCommerce detected</h3>
+        <p>Validation hooks are active.</p>
+      </div>
     </div>
-
-    <div class="wc-qc-content">
-        <div class="wc-qc-card">
-            <div class="wc-qc-card-header">
-                <h2><?php _e('Global Settings', 'wc-quantity-control'); ?></h2>
-                <p><?php _e('These settings apply to all products unless overridden at the product level.', 'wc-quantity-control'); ?></p>
-            </div>
-            
-            <form id="wc-qc-settings-form" class="wc-qc-form">
-                <?php wp_nonce_field('wc_qc_admin_nonce', 'nonce'); ?>
-                
-                <div class="wc-qc-form-group">
-                    <label class="wc-qc-toggle">
-                        <input type="checkbox" name="enable_global_limits" value="yes" <?php checked($enable_global, 'yes'); ?>>
-                        <span class="wc-qc-toggle-slider"></span>
-                        <span class="wc-qc-toggle-label"><?php _e('Enable Global Quantity Limits', 'wc-quantity-control'); ?></span>
-                    </label>
-                </div>
-
-                <div class="wc-qc-form-row">
-                    <div class="wc-qc-form-group">
-                        <label for="global_min_quantity"><?php _e('Global Minimum Quantity', 'wc-quantity-control'); ?></label>
-                        <input type="number" id="global_min_quantity" name="global_min_quantity" value="<?php echo esc_attr($global_min); ?>" min="1" class="wc-qc-input">
-                        <span class="wc-qc-help-text"><?php _e('Minimum quantity customers must order', 'wc-quantity-control'); ?></span>
-                    </div>
-                    
-                    <div class="wc-qc-form-group">
-                        <label for="global_max_quantity"><?php _e('Global Maximum Quantity', 'wc-quantity-control'); ?></label>
-                        <input type="number" id="global_max_quantity" name="global_max_quantity" value="<?php echo esc_attr($global_max); ?>" min="1" class="wc-qc-input">
-                        <span class="wc-qc-help-text"><?php _e('Maximum quantity customers can order', 'wc-quantity-control'); ?></span>
-                    </div>
-                </div>
-
-                <div class="wc-qc-form-group">
-                    <label class="wc-qc-toggle">
-                        <input type="checkbox" name="show_quantity_message" value="yes" <?php checked($show_message, 'yes'); ?>>
-                        <span class="wc-qc-toggle-slider"></span>
-                        <span class="wc-qc-toggle-label"><?php _e('Show Quantity Message on Product Pages', 'wc-quantity-control'); ?></span>
-                    </label>
-                </div>
-
-                <div class="wc-qc-form-group">
-                    <label for="quantity_message"><?php _e('Quantity Message', 'wc-quantity-control'); ?></label>
-                    <input type="text" id="quantity_message" name="quantity_message" value="<?php echo esc_attr($quantity_message); ?>" class="wc-qc-input">
-                    <span class="wc-qc-help-text"><?php _e('Use {min} and {max} as placeholders for the actual values', 'wc-quantity-control'); ?></span>
-                </div>
-
-                <div class="wc-qc-form-actions">
-                    <button type="submit" class="wc-qc-btn wc-qc-btn-primary">
-                        <span class="wc-qc-btn-text"><?php _e('Save Settings', 'wc-quantity-control'); ?></span>
-                        <span class="wc-qc-btn-loading" style="display: none;"><?php _e('Saving...', 'wc-quantity-control'); ?></span>
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="wc-qc-card">
-            <div class="wc-qc-card-header">
-                <h2><?php _e('Product-Specific Settings', 'wc-quantity-control'); ?></h2>
-                <p><?php _e('Override global settings for individual products by editing them in the product inventory tab.', 'wc-quantity-control'); ?></p>
-            </div>
-            
-            <div class="wc-qc-info-box">
-                <div class="wc-qc-info-icon">ℹ️</div>
-                <div class="wc-qc-info-content">
-                    <h3><?php _e('How to set product-specific limits:', 'wc-quantity-control'); ?></h3>
-                    <ol>
-                        <li><?php _e('Go to Products → All Products', 'wc-quantity-control'); ?></li>
-                        <li><?php _e('Edit any product', 'wc-quantity-control'); ?></li>
-                        <li><?php _e('Navigate to the Inventory tab', 'wc-quantity-control'); ?></li>
-                        <li><?php _e('Check "Override Global Limits" and set your custom values', 'wc-quantity-control'); ?></li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-
-        <div class="wc-qc-card">
-            <div class="wc-qc-card-header">
-                <h2><?php _e('Plugin Status', 'wc-quantity-control'); ?></h2>
-            </div>
-            
-            <div class="wc-qc-status-grid">
-                <div class="wc-qc-status-item">
-                    <div class="wc-qc-status-icon wc-qc-status-active">✓</div>
-                    <div class="wc-qc-status-content">
-                        <h3><?php _e('Plugin Active', 'wc-quantity-control'); ?></h3>
-                        <p><?php _e('Quantity controls are working properly', 'wc-quantity-control'); ?></p>
-                    </div>
-                </div>
-                
-                <div class="wc-qc-status-item">
-                    <div class="wc-qc-status-icon wc-qc-status-active">✓</div>
-                    <div class="wc-qc-status-content">
-                        <h3><?php _e('WooCommerce Compatible', 'wc-quantity-control'); ?></h3>
-                        <p><?php printf(__('Version %s detected', 'wc-quantity-control'), WC()->version); ?></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="wc-qc-status-item">
+      <div class="wc-qc-status-icon" style="background:linear-gradient(135deg,#06B6D4,#6366F1)">ℹ</div>
+      <div class="wc-qc-status-content">
+        <h3>Pro tip</h3>
+        <p>Packages override steps (e.g., 100,250,500).</p>
+      </div>
     </div>
+  </div>
+
+  <div class="wc-qc-content">
+    <!-- Global limits -->
+    <section class="wc-qc-card" role="region" aria-labelledby="wc-qc-global">
+      <header class="wc-qc-card-header">
+        <h2 id="wc-qc-global">Global Limits</h2>
+        <p>Define site-wide min/max rules. You can set max to ∞.</p>
+      </header>
+
+      <form id="wc-qc-admin-form" class="wc-qc-form">
+        <input type="hidden" name="action" value="wc_qc_admin_save">
+        <input type="hidden" name="nonce" value="<?php echo esc_attr($nonce); ?>">
+
+        <div class="wc-qc-form-group">
+          <label class="wc-qc-toggle">
+            <input type="checkbox" name="enable_global" <?php checked($en); ?> />
+            <span class="wc-qc-toggle-slider" aria-hidden="true"></span>
+            <span class="wc-qc-toggle-label">Enable global limits</span>
+          </label>
+          <span class="wc-qc-help-text">When off, only product-specific rules apply.</span>
+        </div>
+
+        <div class="wc-qc-form-row">
+          <div class="wc-qc-form-group">
+            <label for="wc-qc-min">Minimum quantity</label>
+            <input id="wc-qc-min" class="wc-qc-input" type="number" name="min" min="1" step="1" value="<?php echo esc_attr($min); ?>">
+          </div>
+
+          <div class="wc-qc-form-group">
+            <label for="wc-qc-max">Maximum quantity</label>
+            <input id="wc-qc-max" class="wc-qc-input" type="number" name="max" min="1" step="1" value="<?php echo esc_attr($max); ?>" <?php disabled($noMax); ?>>
+            <label class="wc-qc-toggle" style="margin-top:6px">
+              <input type="checkbox" id="wc-qc-no-max" name="no_max" <?php checked($noMax); ?> />
+              <span class="wc-qc-toggle-slider"></span>
+              <span class="wc-qc-toggle-label">No maximum (∞)</span>
+            </label>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Messaging -->
+    <section class="wc-qc-card" role="region" aria-labelledby="wc-qc-msg">
+      <header class="wc-qc-card-header">
+        <h2 id="wc-qc-msg">Customer Messaging</h2>
+        <p>Show a friendly message near the quantity field.</p>
+      </header>
+
+      <div class="wc-qc-form">
+        <div class="wc-qc-form-group">
+          <label class="wc-qc-toggle">
+            <input type="checkbox" id="wc-qc-show" name="show_message" form="wc-qc-admin-form" <?php checked($show); ?> />
+            <span class="wc-qc-toggle-slider"></span>
+            <span class="wc-qc-toggle-label">Show quantity message</span>
+          </label>
+        </div>
+
+        <div class="wc-qc-form-group">
+          <label for="wc-qc-message">Message template</label>
+          <textarea id="wc-qc-message" name="message" form="wc-qc-admin-form" rows="3" class="wc-qc-input" style="max-width:640px;"><?php echo esc_textarea($msg); ?></textarea>
+          <span class="wc-qc-help-text">Placeholders: <code class="code">{min}</code>, <code class="code">{max}</code>, <code class="code">{step}</code>, <code class="code">{packages}</code></span>
+        </div>
+
+        <div class="wc-qc-info-box" aria-live="polite">
+          <div class="wc-qc-info-icon">👁</div>
+          <div class="wc-qc-info-content">
+            <h3>Live preview</h3>
+            <ol>
+              <li>Min / Max: <strong id="wc-qc-preview-mm"></strong></li>
+              <li>Rendered message: <strong id="wc-qc-preview-msg"></strong></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Steps & Packages -->
+    <section class="wc-qc-card" role="region" aria-labelledby="wc-qc-steps">
+      <header class="wc-qc-card-header">
+        <h2 id="wc-qc-steps">Steps & Packages</h2>
+        <p>Guide customers to order in increments or fixed packages.</p>
+      </header>
+
+      <div class="wc-qc-form">
+        <div class="wc-qc-form-row">
+          <div class="wc-qc-form-group">
+            <label class="wc-qc-toggle">
+              <input type="checkbox" id="wc-qc-enable-step" name="enable_step" form="wc-qc-admin-form" <?php checked($enStep); ?> />
+              <span class="wc-qc-toggle-slider"></span>
+              <span class="wc-qc-toggle-label">Enable per-item step</span>
+            </label>
+            <input id="wc-qc-step" class="wc-qc-input" type="number" name="step" form="wc-qc-admin-form" min="1" step="1" value="<?php echo esc_attr($step); ?>">
+            <span class="wc-qc-help-text">Examples: 50 → 50,100,150… | Min 100 + Step 50 → 100,150,200…</span>
+          </div>
+
+          <div class="wc-qc-form-group">
+            <label class="wc-qc-toggle">
+              <input type="checkbox" id="wc-qc-enable-order-step" name="enable_order_step" form="wc-qc-admin-form" <?php checked($enOrder); ?> />
+              <span class="wc-qc-toggle-slider"></span>
+              <span class="wc-qc-toggle-label">Enable cart-level step</span>
+            </label>
+            <input id="wc-qc-order-step" class="wc-qc-input" type="number" name="order_step" form="wc-qc-admin-form" min="1" step="1" value="<?php echo esc_attr($orderSt); ?>">
+            <span class="wc-qc-help-text">Total cart quantity must be multiple of this number (e.g., 10).</span>
+          </div>
+        </div>
+
+        <div class="wc-qc-form-group">
+          <label class="wc-qc-toggle">
+            <input type="checkbox" id="wc-qc-enable-packages" name="enable_packages" form="wc-qc-admin-form" <?php checked($enPack); ?> />
+            <span class="wc-qc-toggle-slider"></span>
+            <span class="wc-qc-toggle-label">Enable fixed package sizes</span>
+          </label>
+          <input id="wc-qc-packages" class="wc-qc-input" type="text" name="packages" form="wc-qc-admin-form" value="<?php echo esc_attr($packs); ?>" placeholder="100,250,500">
+          <span class="wc-qc-help-text">Comma-separated integers. If set, packages override per-item step.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seasonal tip -->
+    <section class="wc-qc-card" role="region" aria-labelledby="wc-qc-seasonal">
+      <header class="wc-qc-card-header">
+        <h2 id="wc-qc-seasonal">Managing Seasonal Items</h2>
+        <p>Balance inventory for holiday/summer items by adjusting min & max.</p>
+      </header>
+      <div class="wc-qc-form">
+        <div class="wc-qc-info-box">
+          <div class="wc-qc-info-icon">🎯</div>
+          <div class="wc-qc-info-content">
+            <p>For seasonal peaks, raise <strong>minimums</strong> (e.g., 5 per order) to keep orders efficient. Lower or set <strong>No maximum</strong> off-season to clear stock.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Sticky actions -->
+  <div class="wc-qc-card wc-qc-form-actions">
+    <button id="wc-qc-save" class="wc-qc-btn wc-qc-btn-primary">
+      <span class="wc-qc-btn-text">Save changes</span>
+      <span class="wc-qc-btn-loading">Saving…</span>
+    </button>
+    <button id="wc-qc-reset" class="wc-qc-btn">Reset to defaults</button>
+    <div id="wc-qc-flash" style="margin-left:8px;"></div>
+  </div>
 </div>
