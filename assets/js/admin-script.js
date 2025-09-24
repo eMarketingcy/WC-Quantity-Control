@@ -1,175 +1,104 @@
-/**
- * WooCommerce Quantity Control - Admin JavaScript
- */
+(function($){
+  'use strict';
 
- (function($) {
-    'use strict';
+  var $form, $save, $reset, $flash,
+      $min, $max, $noMax, $msg, $show,
+      $mmOut, $msgOut,
+      $enStep, $step, $enOrder, $orderStep, $enPack, $packages;
 
-    $(document).ready(function() {
-        // Initialize admin functionality
-        WC_QC_Admin.init();
-    });
+  function setLoading($btn, on){ $btn.toggleClass('loading', !!on).prop('disabled', !!on); }
+  function flash(type, text){
+    var cls = type === 'error' ? 'wc-qc-message wc-qc-message-error' : 'wc-qc-message wc-qc-message-success';
+    $flash.html('<div class="'+cls+'">'+ text +'</div>');
+    setTimeout(function(){ $flash.empty(); }, 4000);
+  }
+  function intval(v, d){ v = parseInt(v,10); return Number.isFinite(v) && v>0 ? v : d; }
 
-    var WC_QC_Admin = {
-        
-        init: function() {
-            this.bindEvents();
-            this.initTooltips();
-        },
+  function renderPreview(){
+    var min = intval($min.val(), 1),
+        max = $noMax.is(':checked') ? '∞' : intval($max.val(), 999),
+        tpl = ($msg.val() || '').toString(),
+        step = intval($step.val(), 1),
+        packs = ($packages.val() || '').replace(/\s+/g,'');
+    $mmOut.text(min + ' / ' + max);
+    tpl = tpl.replaceAll('{min}', min).replaceAll('{max}', max).replaceAll('{step}', step).replaceAll('{packages}', packs || '—');
+    $msgOut.text(tpl);
+  }
 
-        bindEvents: function() {
-            // Settings form submission
-            $('#wc-qc-settings-form').on('submit', this.saveSettings);
-            
-            // Real-time validation
-            $('#global_min_quantity, #global_max_quantity').on('input', this.validateQuantityInputs);
-            
-            // Toggle dependencies
-            $('input[name="enable_global_limits"]').on('change', this.toggleGlobalLimits);
-            $('input[name="show_quantity_message"]').on('change', this.toggleQuantityMessage);
-        },
+  function syncMaxState(){
+    var on = $noMax.is(':checked');
+    $max.prop('disabled', on).closest('.wc-qc-form-group').toggleClass('is-disabled', on);
+  }
 
-        saveSettings: function(e) {
-            e.preventDefault();
-            
-            var $form = $(this);
-            var $button = $form.find('.wc-qc-btn-primary');
-            var formData = $form.serialize();
-            
-            // Show loading state
-            $button.addClass('loading').prop('disabled', true);
-            
-            // Remove any existing messages
-            $('.wc-qc-message').remove();
-            
-            $.ajax({
-                url: wc_qc_admin.ajax_url,
-                type: 'POST',
-                data: formData + '&action=wc_qc_save_settings',
-                success: function(response) {
-                    if (response.success) {
-                        WC_QC_Admin.showMessage('success', response.data.message);
-                        WC_QC_Admin.animateSuccess($button);
-                    } else {
-                        WC_QC_Admin.showMessage('error', response.data.message || wc_qc_admin.strings.error);
-                    }
-                },
-                error: function() {
-                    WC_QC_Admin.showMessage('error', wc_qc_admin.strings.error);
-                },
-                complete: function() {
-                    $button.removeClass('loading').prop('disabled', false);
-                }
-            });
-        },
+  function collectPayload(){
+    return {
+      action: 'wc_qc_admin_save',
+      nonce: $form.find('[name="nonce"]').val(),
 
-        validateQuantityInputs: function() {
-            var $minInput = $('#global_min_quantity');
-            var $maxInput = $('#global_max_quantity');
-            var minVal = parseInt($minInput.val()) || 1;
-            var maxVal = parseInt($maxInput.val()) || 999;
-            
-            // Remove existing validation classes
-            $minInput.removeClass('wc-qc-input-error');
-            $maxInput.removeClass('wc-qc-input-error');
-            $('.wc-qc-validation-error').remove();
-            
-            // Validate minimum quantity
-            if (minVal < 1) {
-                WC_QC_Admin.showFieldError($minInput, 'Minimum quantity must be at least 1');
-                return false;
-            }
-            
-            // Validate maximum quantity
-            if (maxVal < minVal) {
-                WC_QC_Admin.showFieldError($maxInput, 'Maximum quantity must be greater than minimum quantity');
-                return false;
-            }
-            
-            return true;
-        },
+      enable_global: $form.find('[name="enable_global"]').is(':checked') ? 'yes':'no',
+      no_max: $noMax.is(':checked') ? 'yes':'no',
+      min: intval($min.val(), 1),
+      max: intval($max.val(), 999),
 
-        toggleGlobalLimits: function() {
-            var $checkbox = $(this);
-            var $quantityInputs = $('#global_min_quantity, #global_max_quantity').closest('.wc-qc-form-group');
-            
-            if ($checkbox.is(':checked')) {
-                $quantityInputs.slideDown(300);
-            } else {
-                $quantityInputs.slideUp(300);
-            }
-        },
+      show_message: $show.is(':checked') ? 'yes':'no',
+      message: $msg.val(),
 
-        toggleQuantityMessage: function() {
-            var $checkbox = $(this);
-            var $messageInput = $('#quantity_message').closest('.wc-qc-form-group');
-            
-            if ($checkbox.is(':checked')) {
-                $messageInput.slideDown(300);
-            } else {
-                $messageInput.slideUp(300);
-            }
-        },
+      enable_step: $enStep.is(':checked') ? 'yes':'no',
+      step: intval($step.val(), 1),
 
-        showMessage: function(type, message) {
-            var messageClass = type === 'success' ? 'wc-qc-message-success' : 'wc-qc-message-error';
-            var $message = $('<div class="wc-qc-message ' + messageClass + '">' + message + '</div>');
-            
-            $('.wc-qc-form').prepend($message);
-            
-            // Scroll to message
-            $('html, body').animate({
-                scrollTop: $message.offset().top - 100
-            }, 300);
-            
-            // Auto-hide success messages
-            if (type === 'success') {
-                setTimeout(function() {
-                    $message.fadeOut(300, function() {
-                        $(this).remove();
-                    });
-                }, 3000);
-            }
-        },
+      enable_order_step: $enOrder.is(':checked') ? 'yes':'no',
+      order_step: intval($orderStep.val(), 0),
 
-        showFieldError: function($field, message) {
-            $field.addClass('wc-qc-input-error');
-            
-            var $error = $('<span class="wc-qc-validation-error" style="color: #dc3545; font-size: 12px; display: block; margin-top: 4px;">' + message + '</span>');
-            $field.after($error);
-        },
-
-        animateSuccess: function($button) {
-            var originalText = $button.find('.wc-qc-btn-text').text();
-            
-            $button.find('.wc-qc-btn-text').text('✓ Saved!');
-            $button.css('background', '#10b981');
-            
-            setTimeout(function() {
-                $button.find('.wc-qc-btn-text').text(originalText);
-                $button.css('background', '');
-            }, 2000);
-        },
-
-        initTooltips: function() {
-            // Add tooltips for help text
-            $('.wc-qc-help-text').each(function() {
-                var $helpText = $(this);
-                var $input = $helpText.prev('.wc-qc-input');
-                
-                $input.on('focus', function() {
-                    $helpText.css('color', '#0073aa');
-                }).on('blur', function() {
-                    $helpText.css('color', '');
-                });
-            });
-        }
+      enable_packages: $enPack.is(':checked') ? 'yes':'no',
+      packages: ($packages.val() || '').toString()
     };
+  }
 
-    // Add custom CSS for validation errors
-    $('<style>')
-        .prop('type', 'text/css')
-        .html('.wc-qc-input-error { border-color: #dc3545 !important; box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important; }')
-        .appendTo('head');
+  function save(e){
+    e.preventDefault();
+    setLoading($save, true);
+    $.post(ajaxurl, collectPayload())
+      .done(function(res){ res && res.success ? flash('success','Settings saved.') : flash('error', (res && res.data) || 'Save failed.'); })
+      .fail(function(){ flash('error','Network error.'); })
+      .always(function(){ setLoading($save, false); });
+  }
 
+  function resetDefaults(e){
+    e.preventDefault();
+    $form.find('[name="enable_global"]').prop('checked', true);
+    $noMax.prop('checked', false);
+    $min.val(1); $max.val(999);
+    $show.prop('checked', true);
+    $msg.val('Quantity must be between {min} and {max}.');
+
+    $enStep.prop('checked', false); $step.val(1);
+    $enOrder.prop('checked', false); $orderStep.val(0);
+    $enPack.prop('checked', false); $packages.val('');
+
+    syncMaxState(); renderPreview();
+    flash('success','Defaults restored (not saved).');
+  }
+
+  $(function(){
+    $form = $('#wc-qc-admin-form');
+    $save = $('#wc-qc-save'); $reset = $('#wc-qc-reset'); $flash = $('#wc-qc-flash');
+
+    $min = $('#wc-qc-min'); $max = $('#wc-qc-max'); $noMax = $('#wc-qc-no-max');
+    $show = $('#wc-qc-show'); $msg = $('#wc-qc-message');
+    $mmOut = $('#wc-qc-preview-mm'); $msgOut = $('#wc-qc-preview-msg');
+
+    $enStep = $('#wc-qc-enable-step'); $step = $('#wc-qc-step');
+    $enOrder= $('#wc-qc-enable-order-step'); $orderStep = $('#wc-qc-order-step');
+    $enPack = $('#wc-qc-enable-packages'); $packages = $('#wc-qc-packages');
+
+    $min.add($max).on('input change', renderPreview);
+    $noMax.on('change', function(){ syncMaxState(); renderPreview(); });
+    $msg.on('input', renderPreview);
+    $step.add($packages).add($orderStep).on('input change', renderPreview);
+
+    renderPreview(); syncMaxState();
+
+    $save.on('click', save);
+    $reset.on('click', resetDefaults);
+  });
 })(jQuery);
