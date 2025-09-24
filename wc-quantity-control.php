@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Quantity Control
  * Plugin URI: https://emarketing.cy
  * Description: Control minimum and maximum order quantities for WooCommerce products with a modern admin interface.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: eMarketing Cyprus
  * License: GPL v2 or later
  * Text Domain: wc-quantity-control
